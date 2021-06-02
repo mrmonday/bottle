@@ -1,0 +1,7 @@
+server = "irc.libera.chat"
+port = 6697
+nick = ""
+ident = ""
+gecos = "A bottle bot"
+password = ""
+channels = "#bottle"
