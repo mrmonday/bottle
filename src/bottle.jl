@@ -115,6 +115,19 @@ function BufferedStreams.readbytes!(source::MbedTLS.SSLContext, buffer::Vector{U
     return length(bytes)
 end
 
+struct User
+    nick::String
+    ident::String
+    host::String
+end
+
+function parse_user(user::AbstractString)::User
+    regex = r"^:(([^!]+)!)?(([^@]+)@)?(.+)$"
+    matches = match(regex, user)
+
+    return User(matches[2], matches[4], matches[5])
+end
+
 function handle_privmsg(msg::String)
     parts = split(msg, " ")
     if length(parts) < 4
@@ -128,14 +141,18 @@ function handle_privmsg(msg::String)
     end
 end
 
-function send_reminder(channel, timer)
+function send_reminder(user::User, channel::AbstractString, timer)
+    if user.nick != nick
+        return
+    end
+
     reminder = "To join ##rust please register with NickServ - see: https://libera.chat/guides/registration"
     send("NOTICE $channel :$reminder")
     min = 60 * 60 * 3
     max = 60 * 60 * 9
     wait = rand(min:max)
     @info "next reminder in $wait"
-    Timer(t -> send_reminder(channel, t), wait)
+    Timer(t -> send_reminder(user, channel, t), wait)
 end
 
 function handle_join(msg::String)
@@ -145,22 +162,10 @@ function handle_join(msg::String)
         return
     end
 
+    user = parse_user(parts[1])
     channel = parts[3]
     initial_wait = rand(10:20)
-    Timer(t -> send_reminder(channel, t), initial_wait)
-end
-
-struct User
-    nick::String
-    ident::String
-    host::String
-end
-
-function parse_user(user::AbstractString)::User
-    regex = r"^:(([^!]+)!)?(([^@]+)@)?(.+)$"
-    matches = match(regex, user)
-
-    return User(matches[2], matches[4], matches[5])
+    Timer(t -> send_reminder(user, channel, t), initial_wait)
 end
 
 function handle_ctcp(user::User, msg::AbstractString)
