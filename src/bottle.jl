@@ -128,6 +128,16 @@ function handle_privmsg(msg::String)
     end
 end
 
+function send_reminder(channel, timer)
+    reminder = "To join ##rust please register with NickServ - see: https://libera.chat/guides/registration"
+    send("NOTICE $channel :$reminder")
+    min = 60 * 60 * 3
+    max = 60 * 60 * 9
+    wait = rand(min:max)
+    @info "next reminder in $wait"
+    Timer(t -> send_reminder(channel, t), wait)
+end
+
 function handle_join(msg::String)
     parts = split(msg, " ")
     if length(parts) < 3
@@ -136,7 +146,8 @@ function handle_join(msg::String)
     end
 
     channel = parts[3]
-    send("PRIVMSG $channel :hello $channel :)")
+    initial_wait = rand(10:20)
+    Timer(t -> send_reminder(channel, t), initial_wait)
 end
 
 struct User
