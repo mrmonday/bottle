@@ -146,10 +146,17 @@ function send_reminder(user::User, channel::AbstractString, timer)
         return
     end
 
-    reminder = "To join ##rust please register with NickServ - see: https://libera.chat/guides/registration"
+    reminders = [
+        "To join ##rust please register with NickServ - see: https://libera.chat/guides/registration",
+        "Already registered? Configure SASL so you don't end up here! https://libera.chat/guides/sasl",
+        "This is not ##rust! To join, please register with NickServ - https://libera.chat/guides/registration",
+        "You need a NickServ account to join ##rust - see https://libera.chat/guides/registration",
+        "Don't end up here by accident - configure your client to authenticate with SASL - https://libera.chat/guides/sasl"
+    ]
+    reminder = rand(reminders)
     send("NOTICE $channel :$reminder")
-    min = 60 * 60 * 3
-    max = 60 * 60 * 9
+    min = 60 * 30
+    max = 60 * 60 * 3
     wait = rand(min:max)
     @info "next reminder in $wait"
     Timer(t -> send_reminder(user, channel, t), wait)
