@@ -155,8 +155,8 @@ function send_reminder(user::User, channel::AbstractString, timer)
     ]
     reminder = rand(reminders)
     send("NOTICE $channel :$reminder")
-    min = 60 * 30
-    max = 60 * 60 * 3
+    min = 60 * 23
+    max = 60 * 79
     wait = rand(min:max)
     @info "next reminder in $wait"
     Timer(t -> send_reminder(user, channel, t), wait)
